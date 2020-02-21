@@ -1,0 +1,159 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="Shelves high dsc">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://shelves_DSC/meshes/shelves_high2_collision.dae</uri>
+            <scale>1.0 1.24 1.28</scale>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://shelves_DSC/meshes/shelves_high2.dae</uri>
+            <scale>1.0 1.24 1.28</scale>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+
+    <!-- =================================
+            Ground level
+         ================================= -->
+    <include>
+      <name>pallet 01 box</name>
+      <uri>model://big_box3</uri>
+      <pose>0.60 0 0.821873 0 0 -1.57317</pose>
+    </include>
+    <include>
+      <name>pallet 01 support</name>
+      <uri>model://europallet</uri>
+      <pose>0.60 0 0.1135 0 0 -1.57317</pose>
+    </include>
+    <include>
+      <name>pallet 02 box</name>
+      <uri>model://big_box4</uri>
+      <pose>1.8 0 0.821847 0 0 -1.59992</pose>
+    </include>
+    <include>
+      <name>pallet 02 support</name>
+      <uri>model://europallet</uri>
+      <pose>1.8 0 0.1135 0 0 -1.56921</pose>
+    </include>
+    <!-- =================================
+            1st level
+         ================================= -->
+    <include>
+      <name>pallet 11 box</name>
+      <uri>model://big_box3</uri>
+      <pose>-1.8 0 2.4382 0 0 -1.57317</pose>
+    </include>
+    <include>
+      <name>pallet 11 support</name>
+      <uri>model://europallet</uri>
+      <pose>-1.8 0 1.73 0 0 -1.57317</pose>
+    </include>
+    <include>
+      <name>pallet 12 box</name>
+      <uri>model://big_box4</uri>
+      <pose>-0.70 0 2.438 0 0 -1.57</pose>
+    </include>
+    <include>
+      <name>pallet 12 support</name>
+      <uri>model://europallet</uri>
+      <pose>-0.70 0 1.73 0 0 -1.57</pose>
+    </include>
+    <include>
+      <name>pallet 13 box</name>
+      <uri>model://big_box4</uri>
+      <pose>0.60 0 2.438227 0 0 -1.57317</pose>
+    </include>
+    <include>
+      <name>pallet 13 support</name>
+      <uri>model://europallet</uri>
+      <pose>0.60 0 1.730062 0 0 -1.57317</pose>
+    </include>
+    <include>
+      <name>pallet 14 box</name>
+      <uri>model://big_box3</uri>
+      <pose>1.85 0 2.438014 0 0 -1.58992</pose>
+    </include>
+    <include>
+      <name>pallet 14 support</name>
+      <uri>model://europallet</uri>
+      <pose>1.85 0 1.73 0 0 -1.56921</pose>
+    </include>
+    <!-- =================================
+            2nd level
+         ================================= -->
+    <include>
+      <name>pallet 21 box</name>
+      <uri>model://big_box3</uri>
+      <pose>-1.85 0 4.1977 0 0 0</pose>
+    </include>
+    <include>
+      <name>pallet 21 support</name>
+      <uri>model://europallet</uri>
+      <pose>-1.85 0 3.4899 0 0 -1.56921</pose>
+    </include>
+    <include>
+      <name>pallet 21 multi boxes</name>
+      <uri>model://pallet_full</uri>
+      <pose>-0.75 0 3.48 0 0 -1.58092</pose>
+      <static>true</static>
+    </include>
+    <include>
+      <name>pallet 22 box</name>
+      <uri>model://big_box4</uri>
+      <pose>0.60 0 4.197756 0 0 -1.57</pose>
+    </include>
+    <include>
+      <name>pallet 22 support</name>
+      <uri>model://europallet</uri>
+      <pose>0.60 0 3.489965 0 0 -1.57</pose>
+    </include>
+    <include>
+      <name>pallet 21 smallbox</name>
+      <uri>model://small_box</uri>
+      <pose>2.0 0 3.663140 0 0 -1.57</pose>
+    </include>
+    <include>
+      <name>pallet 22 smallbox</name>
+      <uri>model://small_box</uri>
+      <pose>1.65 0.3 3.663140 0 0 -1.57</pose>
+    </include>
+    <include>
+      <name>pallet 23 smallbox</name>
+      <uri>model://small_box</uri>
+      <pose>1.65 0.3 3.836515 0 0 -1.56</pose>
+    </include>
+    <include>
+      <name>pallet 24 smallbox</name>
+      <uri>model://small_box</uri>
+      <pose>1.7 -0.4 3.663140 0 0 -1.56</pose>
+    </include>
+    <include>
+      <name>pallet 23 support</name>
+      <uri>model://europallet</uri>
+      <pose>1.8 0 3.489965 0 0 -1.57</pose>
+    </include>
+    <!-- =================================
+            3rd level
+         ================================= -->
+    <include>
+      <name>pallet 31 support</name>
+      <uri>model://europallet</uri>
+      <pose>1.8 0 5.19 0 0 -1.57921</pose>
+    </include>
+    <include>
+      <name>pallet 31 box</name>
+      <uri>model://big_box</uri>
+      <pose>1.8 0 6.0279 0 0 -1.57992</pose>
+    </include>
+
+  </model>
+</sdf>
