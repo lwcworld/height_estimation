@@ -55,8 +55,13 @@ class Variables(object):
         # moving average related
         self.VIO_z_buf = np.ones((1,self.num_MA_buf+1))
         self.firstrun_MA_VIO_z = 1
+        self.firstrun_MA_RF_z = 1
         self.prev_MA_z = 1.0
-        self.MA_z = 0
+        self.MA_VIO_z = 0
+        self.MA_RF_z = 0
 
         #
         self.time_delay = 0
+
+        #
+        self.first_init_DS1 = 0

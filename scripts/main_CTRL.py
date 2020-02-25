@@ -60,7 +60,7 @@ class PX4_GUI(QtWidgets.QDialog):
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
         user = getpass.getuser()
-        self.ui = uic.loadUi("/home/" + user + "/catkin_ws/src/ETRI_FDI/scripts/gui_TK1.ui", self)
+        self.ui = uic.loadUi("/home/" + user + "/workspaces/hgt_est_ws/src/height_estimation/scripts/gui_TK1.ui", self)
         self.ui.show()
 
         self.srv_reset = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
@@ -213,7 +213,7 @@ class PX4_GUI(QtWidgets.QDialog):
 
     @pyqtSlot()
     def slot17(self): # horizontal slider(desired pos (z))
-        agent1.des_z = self.slider_des_z_1.value()
+        agent1.des_z = self.slider_des_z_1.value()/10.0
 
     @pyqtSlot()
     def slot18(self): # run waypoint flight (set waypoint trajectory)

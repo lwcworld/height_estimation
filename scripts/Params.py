@@ -8,8 +8,8 @@ class Params(object):
         self.Dim_RF = 1
 
         # ======== user setting parameters ========
-        self.GatePerDim_onfloor = 0.05
-        self.GatePerDim_onobstacle = 0.04
+        self.GatePerDim_onfloor = 0.2**2
+        self.GatePerDim_onobstacle = 0.2**2 # UAV should not change height abruptly (dz < 2 m/s)
         self.GateLevel_VIO = self.GatePerDim_onfloor**self.Dim_VIO
         self.GateLevel_RF = self.GatePerDim_onfloor**self.Dim_RF
         self.GateLevel_RF_onobstacle = self.GatePerDim_onobstacle**self.Dim_RF

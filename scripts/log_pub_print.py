@@ -1,7 +1,7 @@
 import rospy
 from std_msgs.msg import Int8, Float64
 
-class logpub():
+class log_pub_print():
     def __init__(self):
         self.res_RF_floor = rospy.Publisher('/datalog/res_RF_floor', Float64, queue_size=2)
         self.res_RF_obs = rospy.Publisher('/datalog/res_RF_obs', Float64, queue_size=2)
@@ -50,7 +50,7 @@ class logpub():
         # downward status estimation
         print(['downward status probability (floor, obstacle) : ', round(down_status_prob[0, 0], 3),
                round(down_status_prob[0, 1], 3)])
-        print(['current downward (floor:0, obstacle:1) : ', round(down_status, 0)])
+        print(['current downward (floor:0, obstacle:1, transition:2) : ', round(down_status, 0)])
 
         # measurement source used
         print(['measurement source (rf:0, VIO:1, mixed:2): ', round(meas_used, 0)])

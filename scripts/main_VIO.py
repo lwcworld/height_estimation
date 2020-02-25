@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import rospy
 from Rangefinder_aided_VIO import Rangefinder_aided_VIO
+from log_pub_print import log_pub_print
 
 if __name__ == '__main__':
     rospy.init_node('Rangefinder_aided_VIO')
 
     # RAVIO : Rangefinder aided VIO
     obj_RAVIO = Rangefinder_aided_VIO()
+    obj_log_pub_print = log_pub_print()
 
     # set log param
     is_print_log = 1
@@ -21,7 +23,7 @@ if __name__ == '__main__':
     rospy.sleep(0.5)
     while not rospy.is_shutdown():
         if is_print_log == 1 and count%(freq_log_timeline/freq_print)==0:
-            obj_RAVIO.obj_log_pub_print.log_print(res_RF_floor = obj_RAVIO.dist_RF_floor,
+            obj_log_pub_print.log_print(res_RF_floor = obj_RAVIO.dist_RF_floor,
                                                   res_RF_obs = obj_RAVIO.dist_RF_obstacle,
                                                   res_VIO_floor = obj_RAVIO.dist_VIO,
                                                   meas_RF = obj_RAVIO.RF_meas.range,
@@ -35,7 +37,7 @@ if __name__ == '__main__':
 
         # log publish
         if is_pub_log == 1 and count%(freq_log_timeline/freq_pub)==0:
-            obj_RAVIO.obj_log_pub_print.log_publish(res_RF_floor = obj_RAVIO.dist_RF_floor,
+            obj_log_pub_print.log_publish(res_RF_floor = obj_RAVIO.dist_RF_floor,
                                                     res_RF_obs = obj_RAVIO.dist_RF_obstacle,
                                                     res_VIO_floor = obj_RAVIO.dist_VIO,
                                                     meas_RF = obj_RAVIO.RF_meas.range,

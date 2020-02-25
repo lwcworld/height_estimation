@@ -12,23 +12,11 @@ from tf.transformations import euler_from_quaternion
 from height_estimation.srv import *
 
 from Utils import Utils
-from Params import Params
-from Variables import Variables
-from log_pub_print import  logpub
 
-class Rangefinder_aided_VIO(Utils, Params, Variables, logpub):
+class Rangefinder_aided_VIO(Utils):
     def __init__(self):
         # set util functions
         Utils.__init__(self)
-
-        # set params
-        Params.__init__(self)
-
-        # declare variables
-        Variables.__init__(self)
-
-        # for log
-        self.obj_log_pub_print = logpub()
 
         # ======== ROS communicators declaration ========
         # Subscriber
@@ -185,86 +173,88 @@ class Rangefinder_aided_VIO(Utils, Params, Variables, logpub):
         self.VIO_meas_sub = self.assign_PoseWithCovarianceStamped_msg(msg_out = self.VIO_meas_sub, msg_in = msg)
         self.VIO_meas_pub = self.assign_PoseWithCovarianceStamped_msg(msg_out = self.VIO_meas_pub, msg_in = msg)
 
-        self.MA_z = self.moving_average_VIO_z(self.VIO_meas_sub.pose.pose.position.z)
+        self.MA_VIO_z, self.firstrun_MA_VIO_z = self.moving_average(self.VIO_meas_sub.pose.pose.position.z, self.firstrun_MA_VIO_z)
         self.dist_RF_floor = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range, 1.0)
 
         if self.meas_selec_policy == 0 or self.meas_selec_policy == 1: # automatic
             if self.Downward_Status == 0: # on the floor
-                self.dist_RF_obstacle = 0.0
                 if self.dist_RF_floor < self.GateLevel_RF or self.EKF2_pose.pose.position.z < self.min_height:
-                    # VIO bias estimate and save it into buffer
-                    self.bias_height_of_VIO_meas_sub = (self.MA_z - self.RF_meas.range * np.cos(self.roll) * np.cos(self.pitch))
+                    # VIO bias correction
+                    self.bias_height_of_VIO_meas_sub = (self.MA_VIO_z - self.RF_meas.range * np.cos(self.roll) * np.cos(self.pitch))
                     self.bias_height_of_VIO_meas_sub_hist[0, 0:(self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub_hist[0, 1:(self.bufflen_VIO_bias)]
                     self.bias_height_of_VIO_meas_sub_hist[0, (self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub
 
-                    # publish rangefinder as VIO'z
+                    # use rangefinder
                     self.VIO_meas_pub.pose.pose.position.z = self.RF_meas.range*np.cos(self.roll)*np.cos(self.pitch)
 
-                    if self.isVIObias_fixed == 1:
-                        self.isVIObias_fixed = 0
+                    # log measurement source
                     self.meas_source = 0 # rangefinder
                 else:
                     self.VIO_meas_pub.pose.pose.position.z = self.VIO_meas_sub.pose.pose.position.z - self.bias_height_of_VIO_meas_sub_hist[0,0]
+
+                    # log measurement source
                     self.meas_source = 1  # VIO
             elif self.Downward_Status == 2: # transition
-                # publish bias corrected VIO
+                # use VIO
                 self.VIO_meas_pub.pose.pose.position.z = self.VIO_meas_sub.pose.pose.position.z - self.bias_height_of_VIO_meas_sub_hist[0,0]
-
-                if self.isVIObias_fixed == 0:
-                    self.bias_height_of_VIO_meas_sub_hist[0, :] = self.bias_height_of_VIO_meas_sub_hist[0, 0]
-                    self.isVIObias_fixed = 1
+                # log measurement source
                 self.meas_source = 1 # VIO
             elif self.Downward_Status == 1: # on an obstacle
-                # publish bias corrected VIOime
                 self.VIO_meas_pub.pose.pose.position.z = self.VIO_meas_sub.pose.pose.position.z - self.bias_height_of_VIO_meas_sub_hist[0,0]
-                if self.isVIObias_fixed == 0:
-                    self.bias_height_of_VIO_meas_sub_hist[0, :] = self.bias_height_of_VIO_meas_sub_hist[0, 0]
-                    self.isVIObias_fixed = 1
 
-                # VIO z bias correction when agent is on obstacles
-                if self.weight_rf_vio < 0.5:
+                # rangefinder bias correction
+                if self.weight_rf_vio < 0.5 and self.meas_selec_policy == 0:
+                    self.MA_RF_z, self.firstrun_MA_RF_z = self.moving_average(np.cos(self.roll)*np.cos(self.pitch)*self.RF_meas.range, self.firstrun_MA_RF_z)
                     self.bias_height_of_RF_meas_sub = np.cos(self.roll)*np.cos(self.pitch)*self.RF_meas.range - self.VIO_meas_pub.pose.pose.position.z
 
+                # rangefinder residual w.r.t. obstacle
                 self.dist_RF_obstacle = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range - self.bias_height_of_RF_meas_sub/(np.cos(self.roll)*np.cos(self.pitch)), 1.0)
 
+                # choose meas source
                 if self.dist_RF_floor < self.GateLevel_RF:
                     self.VIO_meas_pub.pose.pose.position.z = (1-self.weight_rf_vio)*self.VIO_meas_pub.pose.pose.position.z + self.weight_rf_vio*(np.cos(self.roll)*np.cos(self.pitch)*self.RF_meas.range)
-                    if self.weight_rf_vio > 0.9:
-                        self.meas_source = 0
-                    elif self.weight_rf_vio < 0.1:
-                        self.meas_source = 1
-                    else:
-                        self.meas_source = 2 # mixed
-                else:
-                    if self.dist_RF_obstacle > self.GateLevel_RF_onobstacle:
-                        self.weight_rf_vio = 0.0
 
-                    self.VIO_meas_pub.pose.pose.position.z = (1-self.weight_rf_vio)*self.VIO_meas_pub.pose.pose.position.z + self.weight_rf_vio*(np.cos(self.roll)*np.cos(self.pitch)*self.RF_meas.range - self.bias_height_of_RF_meas_sub)
+                    # log measurement source
                     if self.weight_rf_vio > 0.9:
-                        # VIO bias correction on an obstacle
-                        self.bias_height_of_VIO_meas_sub = (self.MA_z - self.RF_meas.range * np.cos(self.roll) * np.cos(self.pitch) + self.bias_height_of_RF_meas_sub)
-                        self.bias_height_of_VIO_meas_sub_hist[0,0:(self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub_hist[0, 1:(self.bufflen_VIO_bias)]
-                        self.bias_height_of_VIO_meas_sub_hist[0, (self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub
-                        self.meas_source = 0
+                        self.meas_source = 0 # rangefinder
                     elif self.weight_rf_vio < 0.1:
                         self.meas_source = 1 # VIO
                     else:
                         self.meas_source = 2 # mixed
+                else:
+                    if self.dist_RF_obstacle > self.GateLevel_RF_onobstacle:
+                        self.firstrun_MA_RF_z = 1
+                        self.weight_rf_vio = 0.0
+
+                    self.VIO_meas_pub.pose.pose.position.z = (1-self.weight_rf_vio)*self.VIO_meas_pub.pose.pose.position.z + self.weight_rf_vio*(np.cos(self.roll)*np.cos(self.pitch)*self.RF_meas.range - self.bias_height_of_RF_meas_sub)
+                    if self.weight_rf_vio > 0.9:
+                        # # VIO bias correction on an obstacle
+                        self.bias_height_of_VIO_meas_sub = (self.MA_VIO_z - self.RF_meas.range * np.cos(self.roll) * np.cos(self.pitch) + self.bias_height_of_RF_meas_sub)
+                        self.bias_height_of_VIO_meas_sub_hist[0,0:(self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub_hist[0, 1:(self.bufflen_VIO_bias)]
+                        self.bias_height_of_VIO_meas_sub_hist[0, (self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub
+
+                        # log measurement source
+                        self.meas_source = 0 # rangefinder
+                    elif self.weight_rf_vio < 0.1:
+                        # log measurement source
+                        self.meas_source = 1 # VIO
+                    else:
+                        # log measurement source
+                        self.meas_source = 2 # mixed
 
                 self.weight_rf_vio = self.linear_increase(self.weight_rf_vio, self.del_weight_rf_vio, 1.0)
-        elif self.meas_selec_policy == 2: # rangefinder only
-            # VIO bias estimate and save it into buffer
-            self.bias_height_of_VIO_meas_sub = (self.MA_z - self.RF_meas.range * np.cos(self.roll) * np.cos(self.pitch))
-            self.bias_height_of_VIO_meas_sub_hist[0, 0:(self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub_hist[0, 1:(self.bufflen_VIO_bias)]
-            self.bias_height_of_VIO_meas_sub_hist[0, (self.bufflen_VIO_bias - 1)] = self.bias_height_of_VIO_meas_sub
 
+        elif self.meas_selec_policy == 2: # rangefinder only
+            # # VIO bias estimate and save it into buffer
             self.VIO_meas_pub.pose.pose.position.z = self.RF_meas.range * np.cos(self.roll) * np.cos(self.pitch)
+
+            # log measurement source
             self.meas_source = 0  # rangefinder
+
         elif self.meas_selec_policy == 3: # VIO only
             self.VIO_meas_pub.pose.pose.position.z = self.VIO_meas_sub.pose.pose.position.z - self.bias_height_of_VIO_meas_sub_hist[0, 0]
-            if self.isVIObias_fixed == 0:
-                self.bias_height_of_VIO_meas_sub_hist[0, :] = self.bias_height_of_VIO_meas_sub_hist[0, 0]
-                self.isVIObias_fixed = 1
+
+            # log measurement source
             self.meas_source = 1  # VIO
 
         # some modification of VIO covariance (experimental tuning)
@@ -275,20 +265,9 @@ class Rangefinder_aided_VIO(Utils, Params, Variables, logpub):
                                              0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
                                              0.0, 0.0, 0.0, 0.0, 0.0, 0.01)
 
-        #time_sub = self.VIO_meas_sub.header.stamp
-        time_after_process = rospy.Time.now()
-
         self.pub_vision_pose.publish(self.VIO_meas_pub)
 
         time_after_pub = rospy.Time.now()
         time_delay_rostime = time_after_pub - time_sub
 
-        #time_pub = time_pub.secs + time_pub.nsecs*1e-9
         self.time_delay = time_delay_rostime.secs + time_delay_rostime.nsecs*1e-9
-
-
-
-
-
-
-

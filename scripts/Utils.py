@@ -1,9 +1,16 @@
 import numpy as np
 from tf.transformations import euler_from_quaternion
 
-class Utils(object):
+from Params import Params
+from Variables import Variables
+
+class Utils(Params, Variables):
     def __init__(self):
-        pass
+        # set params
+        Params.__init__(self)
+
+        # declare variables
+        Variables.__init__(self)
 
     def linear_increase(self, var, del_inc, saturation=1.0): # Util
         if var <= saturation:
@@ -73,6 +80,7 @@ class Utils(object):
             self.Downward_Status = 0
         elif prob_mode[1]>0.8:
             self.Downward_Status = 1
+            self.firstrun_MA_RF_z = 1
         else:
             self.Downward_Status = 2
 
@@ -81,7 +89,7 @@ class Utils(object):
             self.bias_height_of_RF_meas_sub = 0.0
 
     def update_mode_prob(self, dist_RF, dist_VIO): # Util
-        if dist_RF < self.GateLevel_RF or self.EKF2_pose.pose.position.z < 1.0:
+        if dist_RF < self.GateLevel_RF or self.EKF2_pose.pose.position.z < self.min_height:
             idx_status = 0  # (0:RF(o), 1:RF(x))
         else:
             idx_status = 1
@@ -94,21 +102,21 @@ class Utils(object):
 
         return self.prob_mode
 
-    def moving_average_VIO_z(self, z): # Util
-        if self.firstrun_MA_VIO_z == 1:
-            self.VIO_z_buf = np.ones((1, self.num_MA_buf+1))*self.VIO_meas_sub.pose.pose.position.z
-            self.prev_MA_z = self.VIO_meas_sub.pose.pose.position.z
-            self.firstrun_MA_VIO_z = 0
+    def moving_average(self, z, firstrun_checker): # Util
+        if firstrun_checker == 1:
+            self.z_buf = np.ones((1, self.num_MA_buf+1))*z
+            self.prev_MA_z = z
+            firstrun_checker = 0
 
         for m in range(0, self.num_MA_buf):
-            self.VIO_z_buf[0,m] = self.VIO_z_buf[0,m+1]
+            self.z_buf[0,m] = self.z_buf[0,m+1]
 
-        self.VIO_z_buf[0,self.num_MA_buf] = z
-        avg = self.prev_MA_z + (z - self.VIO_z_buf[0,0])/self.num_MA_buf
+        self.z_buf[0,self.num_MA_buf] = z
+        avg = self.prev_MA_z + (z - self.z_buf[0,0])/self.num_MA_buf
 
         self.prev_MA_z = avg
 
-        return avg
+        return avg, firstrun_checker
 
     def gcd(self, a, b):
         if b > a:
