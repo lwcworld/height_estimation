@@ -63,6 +63,9 @@ class Variables(object):
         self.MA_VIO_z = 0
         self.MA_RF_z = 0
 
+        # measurement selection policy
+        self.meas_selec_policy = 0 # 0: automatic // 1: rangefinder only // 2: VIO only
+
         #
         self.time_delay = 0
 

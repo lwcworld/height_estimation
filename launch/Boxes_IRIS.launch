@@ -1,10 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- <remap from="/mavros/vision_pose/pose" to="/vio_pose_in" /> -->
-
-    <!-- ::: node: FDI algorithm node -->
-    <node name="Controller" pkg="height_estimation"  type="main_CTRL.py" output="screen">
-    </node> 
+    <!-- ::: node: controller -->
+    <node name="CTRL" pkg="px4_controller"  type="main_CTRL.py" output="screen">
+    </node>
 
     <!-- MAVROS posix SITL environment launch script -->
     <!-- launches MAVROS, PX4 SITL, Gazebo environment, and spawns vehicle -->
@@ -15,12 +13,12 @@
     <arg name="R" default="0"/>
     <arg name="P" default="0"/>
     <arg name="Y" default="0"/>
+
     <!-- vehicle model and world -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="iris_opt_flow"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/warehouse_boxes.world"/>
+    <arg name="world" default="$(find height_estimation)/worlds/warehouse_boxes.world"/>
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
-
 
     <!-- gazebo configs -->
     <arg name="gui" default="true"/>
@@ -52,6 +50,7 @@
         <arg name="paused" value="$(arg paused)"/>
         <arg name="respawn_gazebo" value="$(arg respawn_gazebo)"/>
     </include>
+
     <!-- MAVROS -->
     <include file="$(find mavros)/launch/px4.launch">
         <!-- GCS link is provided by SITL -->
@@ -62,7 +61,7 @@
 
     <!-- VIO data gen node -->
     <arg name="VIO_node_start_delay" default="10.0" />  
-    <node name="Gen_VIO" pkg="BGarage_RF"  type="gen_vision_pose.py" output="screen" launch-prefix="bash -c 'sleep $(arg VIO_node_start_delay); $0 $@' ">
+    <node name="Gen_VIO" pkg="height_estimation"  type="gen_vision_pose.py" output="screen" launch-prefix="bash -c 'sleep $(arg VIO_node_start_delay); $0 $@' ">
     </node>
 
     <!-- set PX4 parameters -->

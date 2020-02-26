@@ -8,11 +8,8 @@ class Params(object):
         self.Dim_RF = 1
 
         # ======== user setting parameters ========
-        self.GatePerDim_onfloor = 0.2**2
-        self.GatePerDim_onobstacle = 0.2**2 # UAV should not change height abruptly (dz < 2 m/s)
-        self.GateLevel_VIO = self.GatePerDim_onfloor**self.Dim_VIO
-        self.GateLevel_RF = self.GatePerDim_onfloor**self.Dim_RF
-        self.GateLevel_RF_onobstacle = self.GatePerDim_onobstacle**self.Dim_RF
+        self.GateLevel_RF = 0.2**2
+        self.GateLevel_RF_onobstacle = 0.2**2 # UAV should not change height abruptly (dz < 2 m/s)
 
         # confusion matrix
         self.confusion_matrix_user0 = np.array([[0.8, 0.1], [0.2, 0.9]])
@@ -29,8 +26,7 @@ class Params(object):
         # moving average buffer length
         self.num_MA_buf = 7
 
-        # measurement selection policy
-        self.meas_selec_policy = 0 # 0: automatic // 1: rangefinder only // 2: VIO only
+
 
         # minimum height to run algorithm
         self.min_height = 1.0

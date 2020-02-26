@@ -27,7 +27,6 @@ class coordinate_transform():
 
         return x, y, z
 
-
     def ecef_to_enu(self, x, y, z, lat0, lon0, h0):
         lamb = math.radians(lat0)
         phi = math.radians(lon0)
