@@ -86,7 +86,7 @@ class Utils(Params, Variables):
 
         if self.Downward_Status == 0:
             self.weight_rf_vio = 0.0
-            self.bias_height_of_RF_meas_sub = 0.0
+            self.bias_VIO = 0.0
 
     def update_mode_prob(self, dist_RF, dist_VIO): # Util
         if dist_RF < self.GateLevel_RF or self.EKF2_pose.pose.position.z < self.min_height:
@@ -102,21 +102,37 @@ class Utils(Params, Variables):
 
         return self.prob_mode
 
-    def moving_average(self, z, firstrun_checker): # Util
-        if firstrun_checker == 1:
-            self.z_buf = np.ones((1, self.num_MA_buf+1))*z
-            self.prev_MA_z = z
-            firstrun_checker = 0
+    def moving_average_VIO(self, z): # Util
+        if self.firstrun_MA_VIO_z == 1:
+            self.VIO_z_buf = np.ones((1, self.num_MA_buf+1))*z
+            self.prev_MA_VIO_z = z
+            self.firstrun_MA_VIO_z = 0
 
         for m in range(0, self.num_MA_buf):
-            self.z_buf[0,m] = self.z_buf[0,m+1]
+            self.VIO_z_buf[0,m] = self.VIO_z_buf[0,m+1]
 
-        self.z_buf[0,self.num_MA_buf] = z
-        avg = self.prev_MA_z + (z - self.z_buf[0,0])/self.num_MA_buf
+        self.VIO_z_buf[0,self.num_MA_buf] = z
+        avg = self.prev_MA_VIO_z + (z - self.VIO_z_buf[0,0])/self.num_MA_buf
 
-        self.prev_MA_z = avg
+        self.prev_MA_VIO_z = avg
 
-        return avg, firstrun_checker
+        return avg
+
+    def moving_average_RF(self, z): # Util
+        if self.firstrun_MA_RF_z == 1:
+            self.RF_z_buf = np.ones((1, self.num_MA_buf+1))*z
+            self.prev_MA_RF_z = z
+            self.firstrun_MA_RF_z = 0
+
+        for m in range(0, self.num_MA_buf):
+            self.RF_z_buf[0,m] = self.RF_z_buf[0,m+1]
+
+        self.RF_z_buf[0,self.num_MA_buf] = z
+        avg = self.prev_MA_RF_z + (z - self.RF_z_buf[0,0])/self.num_MA_buf
+
+        self.prev_MA_RF_z = avg
+
+        return avg
 
     def gcd(self, a, b):
         if b > a:

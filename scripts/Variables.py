@@ -42,21 +42,24 @@ class Variables(object):
         self.meas_selection_policy = 0 # 0: automatic // 1: rangefinder only // 2: VIO only
 
         # VIO bias
-        self.bias_height_of_VIO_meas_sub = 0.0
+        self.bias_VIO = 0.0
         self.isVIObias_fixed = 0
-        self.bias_height_of_VIO_meas_sub_hist = np.zeros((1,self.bufflen_VIO_bias))
+        self.hist_bias_VIO = np.zeros((1,self.bufflen_VIO_bias))
 
         # rangefinder bias
-        self.bias_height_of_RF_meas_sub = 0.0
+        self.bias_RF = 0.0
+
 
         # VIO -> rangefinder weight
         self.weight_rf_vio = 0.0
 
         # moving average related
-        self.VIO_z_buf = np.ones((1,self.num_MA_buf+1))
+        self.z_buf_VIO = np.ones((1,self.num_MA_buf+1))
+        self.z_buf_RF = np.ones((1,self.num_MA_buf+1))
         self.firstrun_MA_VIO_z = 1
         self.firstrun_MA_RF_z = 1
-        self.prev_MA_z = 1.0
+        self.prev_MA_VIO = 1.0
+        self.prev_MA_RF = 1.0
         self.MA_VIO_z = 0
         self.MA_RF_z = 0
 
