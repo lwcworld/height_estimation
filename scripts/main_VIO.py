@@ -13,12 +13,12 @@ if __name__ == '__main__':
     # set log param
     is_print_log = 1
     is_pub_log = 1
-    freq_print = 10
-    freq_pub = 100
+    freq_print = 10 # 10 hz
+    freq_pub = 100 # 100 hz
     freq_log_timeline = obj_RAVIO.lcm(freq_print, freq_pub)
 
     rate = rospy.Rate(freq_log_timeline)
-    count = 1
+    count = 0
 
     rospy.sleep(0.5)
     while not rospy.is_shutdown():

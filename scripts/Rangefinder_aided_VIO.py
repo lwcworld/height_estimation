@@ -30,13 +30,13 @@ class Rangefinder_aided_VIO(Utils):
         self.pub_vision_pose = rospy.Publisher('/mavros/vision_pose/pose_cov', PoseWithCovarianceStamped, queue_size=2)
 
         # ServiceProxy
-        self.set_param_srv   = rospy.ServiceProxy('/mavros/param/set', ParamSet)
-        self.get_param_srv   = rospy.ServiceProxy('/mavros/param/get', ParamGet)
+        self.set_param_srv = rospy.ServiceProxy('/mavros/param/set', ParamSet)
+        self.get_param_srv = rospy.ServiceProxy('/mavros/param/get', ParamGet)
 
         # Service
         self.srv1 = rospy.Service('hgt_meas_source_selection_policy', hgt_meas_source_selection_policy, self.cb_hgt_meas_source_selection_policy)
 
-        # PX4 parameter setting
+        # ===== PX4 parameter setting =====
         # sensor mode related
         self.resp_EKF2_HGT_MODE = self.get_param_srv('EKF2_HGT_MODE')
         self.resp_EKF2_AID_MASK = self.get_param_srv('EKF2_AID_MASK')
@@ -147,9 +147,12 @@ class Rangefinder_aided_VIO(Utils):
     def save_RF_and_decision(self, msg): # ROS
         self.RF_meas = msg
 
-        self.dist_RF = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range, 1)
-        prob_mode = self.update_mode_prob(dist_RF=self.dist_RF, dist_VIO=self. dist_VIO)
+        self.dist_RF_floor = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range, 1.0)
+        prob_mode = self.update_mode_prob(dist_RF=self.dist_RF_floor, dist_VIO=self. dist_VIO)
         self.downward_status_decision(prob_mode=prob_mode[0])
+
+        if self.Downward_Status == 1:
+            self.dist_RF_obstacle = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range - self.bias_RF / (np.cos(self.roll) * np.cos(self.pitch)), 1.0)
 
     def assign_PoseWithCovarianceStamped_msg(self, msg_out, msg_in):
         msg_out.header.frame_id =  msg_in.header.frame_id
@@ -174,7 +177,7 @@ class Rangefinder_aided_VIO(Utils):
         self.VIO_meas_pub = self.assign_PoseWithCovarianceStamped_msg(msg_out = self.VIO_meas_pub, msg_in = msg)
 
         self.MA_VIO_z = self.moving_average_VIO(self.VIO_meas_sub.pose.pose.position.z)
-        self.dist_RF_floor = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range, 1.0)
+        # self.dist_RF_floor = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range, 1.0)
 
         if self.meas_selec_policy == 0 or self.meas_selec_policy == 1: # automatic
             if self.Downward_Status == 0: # on the floor
@@ -197,6 +200,7 @@ class Rangefinder_aided_VIO(Utils):
             elif self.Downward_Status == 2: # transition
                 # use VIO
                 self.VIO_meas_pub.pose.pose.position.z = self.VIO_meas_sub.pose.pose.position.z - self.hist_bias_VIO[0,0]
+
                 # log measurement source
                 self.meas_source = 1 # VIO
             elif self.Downward_Status == 1: # on an obstacle
@@ -208,7 +212,7 @@ class Rangefinder_aided_VIO(Utils):
                     self.bias_RF = np.cos(self.roll)*np.cos(self.pitch)*self.RF_meas.range - self.VIO_meas_pub.pose.pose.position.z
 
                 # rangefinder residual w.r.t. obstacle
-                self.dist_RF_obstacle = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range - self.bias_RF/(np.cos(self.roll)*np.cos(self.pitch)), 1.0)
+                # self.dist_RF_obstacle = self.gaussian_dist(self.EKF2_pose, self.EKF2_vel, self.RF_meas.range - self.bias_RF/(np.cos(self.roll)*np.cos(self.pitch)), 1.0)
 
                 # choose meas source
                 if self.dist_RF_floor < self.GateLevel_RF:
