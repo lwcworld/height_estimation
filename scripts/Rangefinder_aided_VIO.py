@@ -275,3 +275,7 @@ class Rangefinder_aided_VIO(Utils):
         time_delay_rostime = time_after_pub - time_sub
 
         self.time_delay = time_delay_rostime.secs + time_delay_rostime.nsecs*1e-9
+
+
+
+

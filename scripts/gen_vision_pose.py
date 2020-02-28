@@ -68,7 +68,7 @@ if __name__ == '__main__':
         VIO_msg.pose.pose.position.z = gen_VIO_object.z + gen_VIO_object.bias_VIO_z
         VIO_msg.pose.pose.orientation = gen_VIO_object.orientation
 
-        gen_VIO_object.bias_VIO_z = gen_VIO_object.bias_VIO_z - 0.0002 # bias is generated 1cm per second
+        gen_VIO_object.bias_VIO_z = gen_VIO_object.bias_VIO_z - 0.0002 # bias increases
 
         VIO_publisher.publish(VIO_msg)
         VIO_z_bias_publisher.publish(gen_VIO_object.bias_VIO_z)
