@@ -34,7 +34,6 @@ if __name__ == '__main__':
                                                   down_status = obj_RAVIO.Downward_Status,
                                                   meas_used = obj_RAVIO.meas_source,
                                                   time_delay = obj_RAVIO.time_delay)
-
         # log publish
         if is_pub_log == 1 and count%(freq_log_timeline/freq_pub)==0:
             obj_log_pub_print.log_publish(res_RF_floor = obj_RAVIO.dist_RF_floor,
@@ -48,7 +47,6 @@ if __name__ == '__main__':
                                                     down_status = obj_RAVIO.Downward_Status,
                                                     meas_used = obj_RAVIO.meas_source,
                                                     time_delay = obj_RAVIO.time_delay)
-
         if count > freq_log_timeline:
             count = 0
         else:
