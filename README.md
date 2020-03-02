@@ -1,5 +1,19 @@
 # How to run
 ## 1. Gazebo Test
+add following plugin to feed ground truth pose data
+```
+    <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>100.0</updateRate>
+      <bodyName>base_link</bodyName>
+      <topicName>ground_truth_pose</topicName>
+      <gaussianNoise>0.0</gaussianNoise>
+      <frameName>world</frameName>
+      <xyzOffsets>0 0 0</xyzOffsets>	
+      <rpyOffsets>0 0 0</rpyOffsets>
+    </plugin>
+```
+
 copy & paste premade "warehouse_boxes.world" in /world folder to following directory
 ```
 <PX4 Firmware dir>/Tools/sitl_gazebo/worlds
