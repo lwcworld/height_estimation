@@ -1,6 +1,6 @@
 # How to run
 ## 1. Gazebo Test
-add following plugin to feed ground truth pose data
+add following plugin to feed ground truth pose topic (which is used to generate pseudo VIO topic)
 ```
     <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
       <alwaysOn>true</alwaysOn>
