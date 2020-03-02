@@ -53,17 +53,22 @@ rosrun Height_Estimation main_VIO.py
 ```
 
 # user can choose mode change policy
-## automatic mode change between rangefinder and VIO
+## automatic mode change between rangefinder and VIO (recover usability of rangefinder on obstacle)
 ```
 rosservice call hgt_meas_source_selection_policy 0
 ```
 
-## only rangefinder 
+## automatic mode change between rangefinder and VIO (use VIO on obstacle)
 ```
 rosservice call hgt_meas_source_selection_policy 1
 ```
 
-## only VIO 
+## only rangefinder
 ```
 rosservice call hgt_meas_source_selection_policy 2
+```
+
+## only VIO
+```
+rosservice call hgt_meas_source_selection_policy 3
 ```
