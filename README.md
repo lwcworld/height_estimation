@@ -37,7 +37,7 @@ rosrun Height_Estimation main_VIO.py
 ```
 
 ## 2. Hardware Test
-in "<realsense-ros dir>/realsense2_camera/launch/includes/nodelet.launch.xml" file, include following statements at the end of the node
+in "<realsense-ros dir>/realsense2_camera/launch/includes/nodelet.launch.xml" file, add following statements at the end of the node
 ```
     <rosparam>
         /camera/tracking_module/enable_mapping: false
