@@ -147,3 +147,10 @@ class Utils(Params, Variables):
 
     def lcm(self, a, b):
         return a*b // self.gcd(a,b)
+
+    def hist_bias_VIO_push_pull(self, hist_bias_VIO, bias_VIO):
+        hist_bias_VIO[0, 0:(self.bufflen_VIO_bias - 1)] = hist_bias_VIO[0, 1:(self.bufflen_VIO_bias)]
+        hist_bias_VIO[0, (self.bufflen_VIO_bias - 1)] = bias_VIO
+        return hist_bias_VIO
+
+

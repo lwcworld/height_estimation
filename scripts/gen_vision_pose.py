@@ -7,8 +7,11 @@ import rospy
 from sensor_msgs.msg import NavSatFix, Imu
 from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovarianceStamped
 from std_msgs.msg import Float64
+from nav_msgs.msg import Odometry
 
 from coordinate_transform import coordinate_transform
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
+
 
 CT = coordinate_transform()
 
@@ -27,6 +30,13 @@ class gen_VIO():
 
         self.bias_VIO_z = 0.0
 
+        self.i_seq = 1
+
+        self.VIO_msg = PoseWithCovarianceStamped()
+
+        self.VIO_publisher = rospy.Publisher("/vio_pose_in", PoseWithCovarianceStamped, queue_size=2)
+        self.VIO_z_bias_publisher = rospy.Publisher("/datalog/VIO_z_bias", Float64, queue_size=2)
+
     def conv_GPS_to_Cart(self, msg):
         lat = msg.latitude
         lon = msg.longitude
@@ -43,34 +53,48 @@ class gen_VIO():
     def conv_IMU_to_orient(self, msg):
         self.orientation = msg.orientation
 
+    def sub_pub_GT_based_VIO(self, msg):
+        self.VIO_msg.header.frame_id = 'map'
+        self.VIO_msg.header.seq = self.i_seq
+        self.VIO_msg.header.stamp = rospy.Time.now()
+        self.VIO_msg.pose.covariance = (0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001)
+        self.VIO_msg.pose.pose.position.x = msg.pose.pose.position.x + np.random.randn(1,1)*math.sqrt(0.001)
+        self.VIO_msg.pose.pose.position.y = msg.pose.pose.position.y + np.random.randn(1,1)*math.sqrt(0.001)
+        self.VIO_msg.pose.pose.position.z = msg.pose.pose.position.z + np.random.randn(1,1)*math.sqrt(0.001) + self.bias_VIO_z
+
+        qw = msg.pose.pose.orientation.w
+        qx = msg.pose.pose.orientation.x
+        qy = msg.pose.pose.orientation.y
+        qz = msg.pose.pose.orientation.z
+
+        # attitude transformation from Quaternion to Euler
+        quaternion_list = [qx, qy, qz, qw]
+
+        (roll, pitch, yaw) = euler_from_quaternion(quaternion_list)
+
+        roll = roll + np.random.randn(1,1) * math.sqrt(0.00001)
+        pitch = pitch + np.random.randn(1, 1) * math.sqrt(0.00001)
+        yaw = yaw + np.random.randn(1, 1) * math.sqrt(0.00001)
+
+        q = quaternion_from_euler(roll, pitch, yaw)
+
+        self.VIO_msg.pose.pose.orientation.x = q[0]
+        self.VIO_msg.pose.pose.orientation.y = q[1]
+        self.VIO_msg.pose.pose.orientation.z = q[2]
+        self.VIO_msg.pose.pose.orientation.w = q[3]
+
+        self.VIO_publisher.publish(self.VIO_msg)
+        self.VIO_z_bias_publisher.publish(self.bias_VIO_z)
+
+        self.bias_VIO_z = self.bias_VIO_z - 0.0002
+        self.i_seq += 1
+
 if __name__ == '__main__':
     rospy.init_node('gen_vision_pose')
 
     gen_VIO_object = gen_VIO()
-    rospy.Subscriber("/mavros/global_position/raw/fix", NavSatFix, gen_VIO_object.conv_GPS_to_Cart)
-    rospy.Subscriber("/mavros/imu/data", Imu, gen_VIO_object.conv_IMU_to_orient)
+    rospy.Subscriber("/ground_truth_pose", Odometry, gen_VIO_object.sub_pub_GT_based_VIO)
 
-    VIO_publisher = rospy.Publisher("/vio_pose_in", PoseWithCovarianceStamped, queue_size=2)
-    VIO_z_bias_publisher = rospy.Publisher("/datalog/VIO_z_bias", Float64, queue_size=2)
-
-    VIO_msg = PoseWithCovarianceStamped()
-
-    i_seq = 1
-    rate = rospy.Rate(50)
+    rate = rospy.Rate(1)
     while not rospy.is_shutdown():
-        VIO_msg.header.frame_id = 'map'
-        VIO_msg.header.seq = i_seq
-        i_seq += 1
-        VIO_msg.header.stamp = rospy.Time.now()
-        VIO_msg.pose.covariance = (0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001)
-        VIO_msg.pose.pose.position.x = gen_VIO_object.x
-        VIO_msg.pose.pose.position.y = gen_VIO_object.y
-        VIO_msg.pose.pose.position.z = gen_VIO_object.z + gen_VIO_object.bias_VIO_z
-        VIO_msg.pose.pose.orientation = gen_VIO_object.orientation
-
-        gen_VIO_object.bias_VIO_z = gen_VIO_object.bias_VIO_z - 0.0002 # bias increases
-
-        VIO_publisher.publish(VIO_msg)
-        VIO_z_bias_publisher.publish(gen_VIO_object.bias_VIO_z)
-
         rate.sleep()

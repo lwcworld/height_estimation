@@ -12,16 +12,16 @@ class Params(object):
         self.GateLevel_RF_onobstacle = 0.2**2 # UAV should not change height abruptly (dz < 2 m/s)
 
         # confusion matrix
-        self.confusion_matrix = np.array([[0.8, 0.1], [0.2, 0.9]])
+        self.confusion_matrix = np.array([[0.8, 0.2], [0.2, 0.8]])
 
         # VIO to rangefinder transition speed on obstacle
-        self.del_weight_rf_vio = 0.05
+        self.del_weight_rf_vio = 0.01
 
         # VIO bias buffer
-        self.bufflen_VIO_bias = 70
+        self.bufflen_VIO_bias = 5
 
         # moving average buffer length
-        self.num_MA_buf = 7
+        self.num_MA_buf = 5
 
         # minimum height to run algorithm
         self.min_height = 1.0
