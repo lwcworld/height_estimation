@@ -34,6 +34,8 @@ class gen_VIO():
 
         self.VIO_msg = PoseWithCovarianceStamped()
 
+        self.input_noise = 0
+
         self.VIO_publisher = rospy.Publisher("/vio_pose_in", PoseWithCovarianceStamped, queue_size=2)
         self.VIO_z_bias_publisher = rospy.Publisher("/datalog/VIO_z_bias", Float64, queue_size=2)
 
@@ -58,9 +60,9 @@ class gen_VIO():
         self.VIO_msg.header.seq = self.i_seq
         self.VIO_msg.header.stamp = rospy.Time.now()
         self.VIO_msg.pose.covariance = (0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001)
-        self.VIO_msg.pose.pose.position.x = msg.pose.pose.position.x + np.random.randn(1,1)*math.sqrt(0.001)
-        self.VIO_msg.pose.pose.position.y = msg.pose.pose.position.y + np.random.randn(1,1)*math.sqrt(0.001)
-        self.VIO_msg.pose.pose.position.z = msg.pose.pose.position.z + np.random.randn(1,1)*math.sqrt(0.001) + self.bias_VIO_z
+        self.VIO_msg.pose.pose.position.x = msg.pose.pose.position.x + np.random.randn(1,1)*math.sqrt(0.001)*self.input_noise
+        self.VIO_msg.pose.pose.position.y = msg.pose.pose.position.y + np.random.randn(1,1)*math.sqrt(0.001)*self.input_noise
+        self.VIO_msg.pose.pose.position.z = msg.pose.pose.position.z + np.random.randn(1,1)*math.sqrt(0.001)*self.input_noise + self.bias_VIO_z
 
         qw = msg.pose.pose.orientation.w
         qx = msg.pose.pose.orientation.x
@@ -72,9 +74,9 @@ class gen_VIO():
 
         (roll, pitch, yaw) = euler_from_quaternion(quaternion_list)
 
-        roll = roll + np.random.randn(1,1) * math.sqrt(0.00001)
-        pitch = pitch + np.random.randn(1, 1) * math.sqrt(0.00001)
-        yaw = yaw + np.random.randn(1, 1) * math.sqrt(0.00001)
+        roll = roll + np.random.randn(1,1) * math.sqrt(0.00001)*self.input_noise
+        pitch = pitch + np.random.randn(1, 1) * math.sqrt(0.00001)*self.input_noise
+        yaw = yaw + np.random.randn(1, 1) * math.sqrt(0.00001)*self.input_noise
 
         q = quaternion_from_euler(roll, pitch, yaw)
 

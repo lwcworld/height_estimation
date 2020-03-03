@@ -13,42 +13,46 @@ if __name__ == '__main__':
     # set log param
     is_print_log = 1
     is_pub_log = 1
-    freq_print = 10 # 10 hz
+    freq_print = 5 # 10 hz
     freq_pub = 100 # 100 hz
     freq_log_timeline = obj_RAVIO.lcm(freq_print, freq_pub)
 
     rate = rospy.Rate(freq_log_timeline)
-    count = 0
+    count = 1
 
     rospy.sleep(0.5)
     while not rospy.is_shutdown():
-        if is_print_log == 1 and count%(freq_log_timeline/freq_print)==0:
-            obj_log_pub_print.log_print(res_RF_floor = obj_RAVIO.dist_RF_floor,
-                                                  res_RF_obs = obj_RAVIO.dist_RF_obstacle,
-                                                  res_VIO_floor = obj_RAVIO.dist_VIO,
-                                                  meas_RF = obj_RAVIO.RF_meas.range,
-                                                  bias_VIO_z = obj_RAVIO.hist_bias_VIO[0,0],
-                                                  bias_RF = obj_RAVIO.bias_RF,
-                                                  weight_RF_VIO = obj_RAVIO.weight_rf_vio,
-                                                  down_status_prob = obj_RAVIO.prob_mode,
-                                                  down_status = obj_RAVIO.Downward_Status,
-                                                  meas_used = obj_RAVIO.meas_source,
-                                                  time_delay = obj_RAVIO.time_delay)
+        # log print
+        if is_print_log == 1 and count%(freq_log_timeline/freq_print) == 0:
+            obj_log_pub_print.log_publish_print(res_RF_floor = obj_RAVIO.dist_RF_floor,
+                                                res_RF_obs = obj_RAVIO.dist_RF_obstacle,
+                                                res_VIO_floor = obj_RAVIO.dist_VIO,
+                                                meas_RF = obj_RAVIO.RF_meas.range,
+                                                bias_VIO_z = obj_RAVIO.hist_bias_VIO[0,0],
+                                                bias_RF = obj_RAVIO.bias_RF,
+                                                weight_RF_VIO = obj_RAVIO.weight_rf_vio,
+                                                down_status_prob = obj_RAVIO.prob_mode,
+                                                down_status = obj_RAVIO.Downward_Status,
+                                                meas_used = obj_RAVIO.meas_source,
+                                                time_delay = obj_RAVIO.time_delay,
+                                                task = 2)
         # log publish
-        if is_pub_log == 1 and count%(freq_log_timeline/freq_pub)==0:
-            obj_log_pub_print.log_publish(res_RF_floor = obj_RAVIO.dist_RF_floor,
-                                                    res_RF_obs = obj_RAVIO.dist_RF_obstacle,
-                                                    res_VIO_floor = obj_RAVIO.dist_VIO,
-                                                    meas_RF = obj_RAVIO.RF_meas.range,
-                                                    bias_VIO_z = obj_RAVIO.hist_bias_VIO[0,0],
-                                                    bias_RF = obj_RAVIO.bias_RF,
-                                                    weight_RF_VIO = obj_RAVIO.weight_rf_vio,
-                                                    down_status_prob = obj_RAVIO.prob_mode,
-                                                    down_status = obj_RAVIO.Downward_Status,
-                                                    meas_used = obj_RAVIO.meas_source,
-                                                    time_delay = obj_RAVIO.time_delay)
-        if count > freq_log_timeline:
-            count = 0
+        if is_pub_log == 1 and count%(freq_log_timeline/freq_pub) == 0:
+            obj_log_pub_print.log_publish_print(res_RF_floor = obj_RAVIO.dist_RF_floor,
+                                                res_RF_obs = obj_RAVIO.dist_RF_obstacle,
+                                                res_VIO_floor = obj_RAVIO.dist_VIO,
+                                                meas_RF = obj_RAVIO.RF_meas.range,
+                                                bias_VIO_z = obj_RAVIO.hist_bias_VIO[0,0],
+                                                bias_RF = obj_RAVIO.bias_RF,
+                                                weight_RF_VIO = obj_RAVIO.weight_rf_vio,
+                                                down_status_prob = obj_RAVIO.prob_mode,
+                                                down_status = obj_RAVIO.Downward_Status,
+                                                meas_used = obj_RAVIO.meas_source,
+                                                time_delay = obj_RAVIO.time_delay,
+                                                task = 1)
+
+        if count >= freq_log_timeline:
+            count = 1
         else:
             count = count + 1
 
