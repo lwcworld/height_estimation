@@ -252,7 +252,6 @@ class Rangefinder_aided_VIO(Utils):
 
             # log measurement source
             self.meas_source = 0  # rangefinder
-
         elif self.meas_selec_policy == 3: # VIO only
             self.VIO_meas_pub.pose.pose.position.z = self.VIO_meas_sub.pose.pose.position.z - self.hist_bias_VIO[0, 0]
 

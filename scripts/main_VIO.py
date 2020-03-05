@@ -13,7 +13,7 @@ if __name__ == '__main__':
     # set log param
     is_print_log = 1
     is_pub_log = 1
-    freq_print = 5 # 10 hz
+    freq_print = 10 # 5 hz
     freq_pub = 100 # 100 hz
     freq_log_timeline = obj_RAVIO.lcm(freq_print, freq_pub)
 
